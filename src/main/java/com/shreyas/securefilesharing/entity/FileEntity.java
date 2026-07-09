@@ -24,7 +24,7 @@ public class FileEntity {
 
     private Long fileSize;
 
-    private String filePath;
+    private String fileUrl;
 
     private LocalDateTime uploadedAt;
 
