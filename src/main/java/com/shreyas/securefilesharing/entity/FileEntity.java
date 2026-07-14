@@ -26,6 +26,8 @@ public class FileEntity {
 
     private String fileUrl;
 
+    private String publicId;
+
     private LocalDateTime uploadedAt;
 
     @ManyToOne

@@ -1,0 +1,47 @@
+services:
+
+  mysql:
+    image: mysql:8.0
+    container_name: secure-file-db
+    restart: always
+
+    environment:
+      MYSQL_ROOT_PASSWORD: root@123
+      MYSQL_DATABASE: secure_file_sharing
+
+    ports:
+      - "3307:3306"
+
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot@123"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+
+    container_name: secure-file-sharing
+    restart: always
+
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+    ports:
+      - "8081:8081"
+
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/secure_file_sharing
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root@123
+
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+
+volumes:
+  mysql_data:

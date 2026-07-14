@@ -2,6 +2,7 @@ package com.shreyas.securefilesharing.controller;
 
 import com.shreyas.securefilesharing.entity.FileEntity;
 import com.shreyas.securefilesharing.service.FileService;
+import com.shreyas.securefilesharing.dto.FileResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,13 +18,13 @@ public class FileController {
     private final FileService fileService;
 
     @PostMapping("/upload")
-    public FileEntity upload(@RequestParam("file") MultipartFile file) throws Exception {
+    public FileResponse upload(@RequestParam("file") MultipartFile file) throws Exception {
 
         return fileService.uploadFile(file);
     }
 
     @GetMapping("/my")
-    public List<FileEntity> myFiles() {
+    public List<FileResponse> myFiles() {
 
         return fileService.getMyFiles();
     }
@@ -35,7 +36,7 @@ public class FileController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> delete(@PathVariable Long id) {
+    public ResponseEntity<String> delete(@PathVariable Long id) throws Exception {
 
         fileService.deleteFile(id);
 

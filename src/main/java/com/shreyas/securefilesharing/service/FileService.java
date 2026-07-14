@@ -6,6 +6,7 @@ import com.shreyas.securefilesharing.entity.FileEntity;
 import com.shreyas.securefilesharing.entity.User;
 import com.shreyas.securefilesharing.repository.FileRepository;
 import com.shreyas.securefilesharing.repository.UserRepository;
+import com.shreyas.securefilesharing.dto.FileResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -23,7 +24,7 @@ public class FileService {
     private final UserRepository userRepository;
     private final Cloudinary cloudinary;
 
-    public FileEntity uploadFile(MultipartFile file) throws Exception {
+    public FileResponse uploadFile(MultipartFile file) throws Exception {
 
         String email = SecurityContextHolder.getContext()
                 .getAuthentication()
@@ -38,20 +39,22 @@ public class FileService {
         );
 
         String fileUrl = uploadResult.get("secure_url").toString();
+        String publicId = uploadResult.get("public_id").toString();
 
         FileEntity entity = FileEntity.builder()
                 .fileName(file.getOriginalFilename())
                 .fileType(file.getContentType())
                 .fileSize(file.getSize())
                 .fileUrl(fileUrl)
+                .publicId(publicId)
                 .uploadedAt(LocalDateTime.now())
                 .user(user)
                 .build();
 
-        return fileRepository.save(entity);
-    }
+        FileEntity savedFile = fileRepository.save(entity);
+        return mapToResponse(savedFile);    }
 
-    public List<FileEntity> getMyFiles() {
+    public List<FileResponse> getMyFiles() {
 
         String email = SecurityContextHolder.getContext()
                 .getAuthentication()
@@ -60,7 +63,10 @@ public class FileService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        return fileRepository.findByUser(user);
+        return fileRepository.findByUser(user)
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
     }
 
     public String downloadFile(Long id) {
@@ -78,7 +84,7 @@ public class FileService {
         return file.getFileUrl();
     }
 
-    public void deleteFile(Long id) {
+    public void deleteFile(Long id) throws Exception {
 
         String email = SecurityContextHolder.getContext()
                 .getAuthentication()
@@ -90,6 +96,22 @@ public class FileService {
         FileEntity file = fileRepository.findByIdAndUser(id, user)
                 .orElseThrow(() -> new RuntimeException("File not found"));
 
+        cloudinary.uploader().destroy(
+                file.getPublicId(),
+                ObjectUtils.emptyMap()
+        );
+
         fileRepository.delete(file);
+    }
+    private FileResponse mapToResponse(FileEntity file) {
+
+        return FileResponse.builder()
+                .id(file.getId())
+                .fileName(file.getFileName())
+                .fileType(file.getFileType())
+                .fileSize(file.getFileSize())
+                .fileUrl(file.getFileUrl())
+                .uploadedAt(file.getUploadedAt())
+                .build();
     }
 }

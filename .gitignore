@@ -2,7 +2,6 @@ HELP.md
 
 # Maven
 target/
-.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
 
@@ -50,5 +49,5 @@ Thumbs.db
 application-local.properties
 application-prod.properties
 
-# Node / React (for later)
+# Node / React
 node_modules/
